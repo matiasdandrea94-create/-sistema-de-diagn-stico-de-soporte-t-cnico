@@ -1,0 +1,1296 @@
+<!DOCTYPE html>
+<!-- Sistema de Diagnóstico de Soporte Técnico -->
+<!-- Simulador interactivo que guía paso a paso a través de distintos problemas técnicos -->
+<html lang="es">
+<head>
+<!-- Metadatos del documento -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TechDiag — Sistema de Diagnóstico</title>
+<!-- Importar fuentes personalizadas: Space Mono (monoespaciada) y Syne (sans-serif) -->
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  /* ═══════════════════════════════════════════════════════════════════════════
+     SISTEMA DE VARIABLES CSS - ESQUEMA DE COLORES Y TIPOGRAFÍA (DARK/LIGHT MODE)
+     ═════════════════════════════════════════════════════════════════════════ */
+  :root {
+    --bg: #0a0c10;
+    --surface: #111318;
+    --surface2: #181c24;
+    --border: #1f2535;
+    --accent: #00e5ff;
+    --accent2: #ff3d71;
+    --accent3: #7b61ff;
+    --text: #e2e8f4;
+    --text-muted: #6b7592;
+    --green: #00ff88;
+    --yellow: #ffd600;
+    --mono: 'Space Mono', monospace;
+    --sans: 'Syne', sans-serif;
+  }
+
+  /* Light mode - activado con clase 'light-mode' en body */
+  body.light-mode {
+    --bg: #f5f7fa;
+    --surface: #ffffff;
+    --surface2: #eff2f5;
+    --border: #d0d7e0;
+    --accent: #0084d4;
+    --accent2: #d94456;
+    --accent3: #6c5ce7;
+    --text: #1a1e29;
+    --text-muted: #5a6675;
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     RESET GLOBAL - Normalizar márgenes, padding y modelo de caja
+     ═════════════════════════════════════════════════════════════════════════ */
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  /* Estilos base del body -->
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     EFECTO SCANLINE - Overlay decorativo de líneas que emula pantallas antiguas
+     ═════════════════════════════════════════════════════════════════════════ */
+  body::before {
+    content:'';
+    position:fixed;
+    inset:0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,229,255,0.015) 2px,
+      rgba(0,229,255,0.015) 4px
+    );
+    pointer-events:none;
+    z-index:9999;
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     HEADER - Barra superior con logo, título y estado del sistema
+     ═════════════════════════════════════════════════════════════════════════ */
+  header {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding: 18px 40px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(10,12,16,0.95);
+    backdrop-filter: blur(12px);
+    position: sticky;
+    top:0;
+    z-index:100;
+    transition: all 0.3s ease;
+  }
+
+  body.light-mode header {
+    background: rgba(245,247,250,0.95);
+  }
+
+  /* Theme toggle button */
+  .theme-toggle {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text);
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    transition: all 0.2s;
+  }
+
+  .theme-toggle:hover {
+    background: var(--surface);
+    border-color: var(--accent);
+  }
+
+  /* Logo principal: contenedor flex para alineación horizontal -->
+  .logo {
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+
+  /* Icono hexagonal animado con pulso de brillo -->
+  .logo-icon {
+    width:36px; height:36px;
+    background: var(--accent);
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    animation: pulse-hex 3s ease-in-out infinite;
+  }
+
+  /* Animación: pulso expansivo del hexágono -->
+  @keyframes pulse-hex {
+    0%,100% { box-shadow: 0 0 0 0 rgba(0,229,255,0.4); }
+    50% { box-shadow: 0 0 0 8px rgba(0,229,255,0); }
+  }
+
+  /* Texto del logo en fuente monoespaciada -->
+  .logo-text {
+    font-family: var(--mono);
+    font-size: 1.1rem;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+  }
+  .logo-text span { color: var(--text-muted); }
+
+  .status-bar {
+    display:flex;
+    align-items:center;
+    gap:20px;
+    font-family: var(--mono);
+    font-size:0.7rem;
+    color: var(--text-muted);
+  }
+
+  .status-dot {
+    width:7px; height:7px;
+    border-radius:50%;
+    background: var(--green);
+    box-shadow: 0 0 6px var(--green);
+    animation: blink 2s step-end infinite;
+  }
+
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     LAYOUT PRINCIPAL - Grid de 3 columnas: Sidebar | Main | Diagnostic Panel
+     ═════════════════════════════════════════════════════════════════════════ */
+  .app {
+    display:grid;
+    grid-template-columns: 280px 1fr 300px;
+    height: calc(100vh - 61px);
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     SIDEBAR - Panel lateral izquierdo con categorías de filtrado
+     ═════════════════════════════════════════════════════════════════════════ */
+  .sidebar {
+    border-right: 1px solid var(--border);
+    padding: 24px 0;
+    overflow-y: auto;
+    background: var(--surface);
+  }
+
+  .sidebar-section {
+    margin-bottom: 28px;
+  }
+
+  .sidebar-label {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    color: var(--text-muted);
+    padding: 0 20px 10px;
+    text-transform: uppercase;
+  }
+
+  .category-btn {
+    width:100%;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding: 12px 20px;
+    background:transparent;
+    border:none;
+    color: var(--text-muted);
+    font-family: var(--sans);
+    font-size: 0.85rem;
+    font-weight:600;
+    cursor:pointer;
+    text-align:left;
+    transition: all 0.2s;
+    border-left: 2px solid transparent;
+  }
+
+  .category-btn:hover {
+    background: rgba(0,229,255,0.05);
+    color: var(--text);
+    border-left-color: rgba(0,229,255,0.3);
+  }
+
+  .category-btn.active {
+    background: rgba(0,229,255,0.08);
+    color: var(--accent);
+    border-left-color: var(--accent);
+  }
+
+  .cat-icon {
+    font-size:1.1rem;
+    width:22px;
+    text-align:center;
+  }
+
+  .cat-count {
+    margin-left:auto;
+    font-family: var(--mono);
+    font-size:0.65rem;
+    background: var(--surface2);
+    padding:2px 7px;
+    border-radius:3px;
+    color: var(--text-muted);
+  }
+
+  .category-btn.active .cat-count {
+    background: rgba(0,229,255,0.15);
+    color: var(--accent);
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     MAIN - Área central con grid de tarjetas de problemas
+     ═════════════════════════════════════════════════════════════════════════ */
+  .main {
+    overflow-y: auto;
+    padding: 32px;
+    background: var(--bg);
+  }
+
+  .main-header {
+    margin-bottom: 28px;
+  }
+
+  .main-header h1 {
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin-bottom: 6px;
+  }
+
+  .main-header p {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     SEARCH - Barra de búsqueda para filtrar problemas por palabra clave
+     ═════════════════════════════════════════════════════════════════════════ */
+  .search-wrap {
+    position:relative;
+    margin-bottom: 24px;
+  }
+
+  .search-wrap input {
+    width:100%;
+    padding: 13px 16px 13px 44px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    outline:none;
+    transition: border-color 0.2s;
+  }
+
+  .search-wrap input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(0,229,255,0.08);
+  }
+
+  .search-icon {
+    position:absolute;
+    left:14px;
+    top:50%;
+    transform:translateY(-50%);
+    color: var(--text-muted);
+    font-size:1rem;
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     PROBLEM GRID - Diseño responsivo de tarjetas de problemas con animaciones
+     ═════════════════════════════════════════════════════════════════════════ */
+  .problem-grid {
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap:14px;
+    margin-bottom: 32px;
+  }
+
+  .problem-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius:10px;
+    padding: 18px;
+    cursor:pointer;
+    transition: all 0.2s;
+    position:relative;
+    overflow:hidden;
+  }
+
+  .problem-card::before {
+    content:'';
+    position:absolute;
+    top:0; left:0; right:0;
+    height:2px;
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s;
+  }
+
+  .problem-card:hover {
+    border-color: rgba(0,229,255,0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(0,229,255,0.07);
+  }
+
+  .problem-card:hover::before { transform: scaleX(1); }
+
+  .problem-card.critical { border-color: rgba(255,61,113,0.3); }
+  .problem-card.critical::before { background: var(--accent2); }
+  .problem-card.critical:hover { box-shadow: 0 8px 30px rgba(255,61,113,0.1); }
+
+  .problem-card.warning { border-color: rgba(255,214,0,0.25); }
+  .problem-card.warning::before { background: var(--yellow); }
+
+  .card-top {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:10px;
+  }
+
+  .card-icon { font-size:1.4rem; }
+
+  .severity-badge {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    padding: 3px 8px;
+    border-radius:3px;
+    text-transform: uppercase;
+    font-weight:700;
+  }
+
+  .badge-critical { background:rgba(255,61,113,0.15); color:var(--accent2); }
+  .badge-medium { background:rgba(255,214,0,0.12); color:var(--yellow); }
+  .badge-low { background:rgba(0,255,136,0.12); color:var(--green); }
+
+  .card-title {
+    font-size:0.9rem;
+    font-weight:700;
+    margin-bottom:5px;
+    color: var(--text);
+  }
+
+  .card-desc {
+    font-size:0.75rem;
+    color: var(--text-muted);
+    line-height:1.5;
+  }
+
+  .card-meta {
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-top:12px;
+    padding-top:10px;
+    border-top:1px solid var(--border);
+    font-family: var(--mono);
+    font-size:0.65rem;
+    color: var(--text-muted);
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     DIAGNOSTIC PANEL - Panel derecho que muestra los pasos del diagnóstico
+     ═════════════════════════════════════════════════════════════════════════ */
+  .diag-panel {
+    border-left: 1px solid var(--border);
+    background: var(--surface);
+    overflow-y: auto;
+    display:flex;
+    flex-direction:column;
+  }
+
+  .diag-header {
+    padding: 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+
+  .diag-title {
+    font-family: var(--mono);
+    font-size:0.7rem;
+    letter-spacing:0.15em;
+    color: var(--accent);
+    text-transform:uppercase;
+    margin-bottom:4px;
+  }
+
+  .diag-problem-name {
+    font-size:1rem;
+    font-weight:800;
+    line-height:1.3;
+  }
+
+  .diag-body { padding:20px; flex:1; }
+
+  .empty-diag {
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    height:100%;
+    gap:12px;
+    color: var(--text-muted);
+    text-align:center;
+    padding:40px 20px;
+  }
+
+  .empty-diag .big-icon { font-size:3rem; opacity:0.3; }
+  .empty-diag p { font-size:0.8rem; line-height:1.6; }
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     PASOS DEL DIAGNÓSTICO - Lista numerada con animaciones de entrada
+     ═════════════════════════════════════════════════════════════════════════ */
+  .step-list { list-style:none; }
+
+  .step-item {
+    display:flex;
+    gap:14px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+    opacity:0;
+    transform: translateX(10px);
+    animation: slide-in 0.3s forwards;
+  }
+
+  @keyframes slide-in {
+    to { opacity:1; transform:translateX(0); }
+  }
+
+  .step-num {
+    flex-shrink:0;
+    width:24px; height:24px;
+    border-radius:50%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family: var(--mono);
+    font-size:0.65rem;
+    color: var(--text-muted);
+    margin-top:1px;
+    transition: all 0.2s;
+  }
+
+  .step-item.done .step-num {
+    background: rgba(0,255,136,0.15);
+    border-color: var(--green);
+    color: var(--green);
+  }
+
+  .step-content { flex:1; }
+
+  .step-title {
+    font-size:0.82rem;
+    font-weight:700;
+    margin-bottom:4px;
+    color: var(--text);
+  }
+
+  .step-desc {
+    font-size:0.73rem;
+    color: var(--text-muted);
+    line-height:1.5;
+    margin-bottom:8px;
+  }
+
+  .step-actions {
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+
+  .btn-sm {
+    font-family: var(--mono);
+    font-size:0.65rem;
+    padding: 5px 10px;
+    border-radius:4px;
+    border:none;
+    cursor:pointer;
+    transition: all 0.15s;
+    letter-spacing:0.05em;
+  }
+
+  .btn-yes {
+    background: rgba(0,255,136,0.12);
+    color: var(--green);
+    border: 1px solid rgba(0,255,136,0.25);
+  }
+  .btn-yes:hover { background:rgba(0,255,136,0.22); }
+
+  .btn-no {
+    background: rgba(255,61,113,0.1);
+    color: var(--accent2);
+    border: 1px solid rgba(255,61,113,0.2);
+  }
+  .btn-no:hover { background:rgba(255,61,113,0.2); }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #000;
+    font-weight:700;
+    border:none;
+    padding: 10px 20px;
+    border-radius:6px;
+    cursor:pointer;
+    font-family: var(--mono);
+    font-size:0.75rem;
+    letter-spacing:0.08em;
+    transition: all 0.2s;
+    width:100%;
+    margin-top:16px;
+  }
+
+  .btn-primary:hover { 
+    background: #00ccee;
+    box-shadow: 0 4px 20px rgba(0,229,255,0.3);
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     TERMINAL OUTPUT - Emulación de salida de terminal/CMD con colores
+     ═════════════════════════════════════════════════════════════════════════ */
+  .terminal {
+    background: #050709;
+    border: 1px solid var(--border);
+    border-radius:6px;
+    padding: 12px;
+    font-family: var(--mono);
+    font-size:0.7rem;
+    line-height:1.8;
+    margin-top:12px;
+    max-height:150px;
+    overflow-y:auto;
+  }
+
+  .terminal .t-green { color: var(--green); }
+  .terminal .t-yellow { color: var(--yellow); }
+  .terminal .t-red { color: var(--accent2); }
+  .terminal .t-cyan { color: var(--accent); }
+  .terminal .t-muted { color: var(--text-muted); }
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     RESULT - Caja de resultado (resuelto o escalado a Nivel 2)
+     ═════════════════════════════════════════════════════════════════════════ */
+  .result-box {
+    border-radius:8px;
+    padding:16px;
+    margin-top:16px;
+    animation: fade-up 0.4s ease;
+  }
+
+  @keyframes fade-up {
+    from { opacity:0; transform:translateY(8px); }
+    to { opacity:1; transform:translateY(0); }
+  }
+
+  .result-solved {
+    background: rgba(0,255,136,0.08);
+    border: 1px solid rgba(0,255,136,0.25);
+  }
+
+  .result-escalate {
+    background: rgba(255,61,113,0.08);
+    border: 1px solid rgba(255,61,113,0.2);
+  }
+
+  .result-title {
+    font-size:0.8rem;
+    font-weight:800;
+    margin-bottom:6px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+
+  .result-desc {
+    font-size:0.72rem;
+    color: var(--text-muted);
+    line-height:1.6;
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     PROGRESS - Barra de progreso del diagnóstico
+     ═════════════════════════════════════════════════════════════════════════ */
+  .progress-wrap {
+    padding: 0 20px 16px;
+  }
+
+  .progress-bar {
+    height:3px;
+    background: var(--border);
+    border-radius:2px;
+    overflow:hidden;
+  }
+
+  .progress-fill {
+    height:100%;
+    background: linear-gradient(90deg, var(--accent3), var(--accent));
+    border-radius:2px;
+    transition: width 0.4s ease;
+  }
+
+  .progress-label {
+    display:flex;
+    justify-content:space-between;
+    font-family: var(--mono);
+    font-size:0.6rem;
+    color: var(--text-muted);
+    margin-bottom:6px;
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     STATS - Tarjetas de estadísticas (total de problemas, resueltos, críticos)
+     ═════════════════════════════════════════════════════════════════════════ */
+  .stats-row {
+    display:grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap:12px;
+    margin-bottom:28px;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius:8px;
+    padding:16px;
+    text-align:center;
+  }
+
+  .stat-num {
+    font-family: var(--mono);
+    font-size:1.6rem;
+    font-weight:700;
+    color: var(--accent);
+    line-height:1;
+    margin-bottom:4px;
+  }
+
+  .stat-label {
+    font-size:0.7rem;
+    color: var(--text-muted);
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     TAGS - Etiquetas de categoría/temática dentro de tarjetas
+     ═════════════════════════════════════════════════════════════════════════ */
+  .tags {
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+    margin-top:8px;
+  }
+
+  .tag {
+    font-family: var(--mono);
+    font-size:0.6rem;
+    padding: 3px 8px;
+    background: var(--surface2);
+    border-radius:3px;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     SCROLLBAR - Estilo personalizado de la barra de desplazamiento
+     ═════════════════════════════════════════════════════════════════════════ */
+  ::-webkit-scrollbar { width:5px; }
+  ::-webkit-scrollbar-track { background:transparent; }
+  ::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     RESPONSIVE - Media queries para adaptar diseño a pantallas más pequeñas
+     ═════════════════════════════════════════════════════════════════════════ */
+  @media (max-width:1100px) {
+    .app { grid-template-columns: 220px 1fr 260px; }
+  }
+  @media (max-width:800px) {
+    .app { grid-template-columns: 1fr; grid-template-rows:auto 1fr auto; }
+    .sidebar { display:flex; overflow-x:auto; padding:12px 0; border-right:none; border-bottom:1px solid var(--border); height: auto; }
+    .sidebar-section { display: flex; gap: 8px; white-space: nowrap; padding: 0 12px; }
+    .diag-panel { max-height:45vh; border-left:none; border-top:1px solid var(--border); }
+    header { padding:14px 20px; gap: 8px; }
+    .main { padding:20px; }
+    .status-bar { display: none; }
+    .logo-icon { width: 28px; height: 28px; }
+    .logo-text { font-size: 0.9rem; }
+    .problem-grid { grid-template-columns: 1fr; }
+    .stats-row { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .stat-card { padding: 12px; }
+    .stat-num { font-size: 1.2rem; }
+    .stat-label { font-size: 0.6rem; }
+  }
+
+  @media (max-width:500px) {
+    header { padding: 10px 14px; }
+    .main { padding: 14px; }
+    .main-header h1 { font-size: 1.3rem; }
+    .search-wrap input { font-size: 0.75rem; }
+    .diag-panel { max-height: 35vh; }
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     TYPING CURSOR - Efecto de cursor parpadeante para texto/código
+     ═════════════════════════════════════════════════════════════════════════ */
+  .typing::after {
+    content:'▋';
+    animation: blink 0.8s step-end infinite;
+    color: var(--accent);
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     COPY BUTTON - Botón para copiar contenido de terminales/código
+     ═════════════════════════════════════════════════════════════════════════ */
+  .copy-btn {
+    font-family: var(--mono);
+    font-size:0.6rem;
+    padding:3px 8px;
+    border:1px solid var(--border);
+    border-radius:3px;
+    background:transparent;
+    color:var(--text-muted);
+    cursor:pointer;
+    float:right;
+    transition:all 0.2s;
+  }
+  .copy-btn:hover { color:var(--accent); border-color:var(--accent); }
+
+  .section-title {
+    font-family: var(--mono);
+    font-size:0.65rem;
+    letter-spacing:0.15em;
+    color: var(--text-muted);
+    text-transform:uppercase;
+    margin-bottom:12px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+
+  .section-title::after {
+    content:'';
+    flex:1;
+    height:1px;
+    background:var(--border);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <!-- Logo: Icono + Texto -->
+  <div class="logo">
+    <div class="logo-icon"></div>
+    <div class="logo-text">TECH<span>DIAG</span></div>
+  </div>
+  <!-- Barra de estado: indicador activo, reloj y versión -->
+  <div class="status-bar">
+    <div class="status-dot"></div>
+    <span>SISTEMA ACTIVO</span>
+    <span style="color:var(--border)">|</span>
+    <span id="clock">--:--:--</span>
+    <span style="color:var(--border)">|</span>
+    <span>v2.5.0</span>
+  </div>
+  <div style="display:flex; gap:10px; align-items:center;">
+    <button class="theme-toggle" id="theme-btn" title="Toggle dark/light mode">🌙</button>
+    <button class="btn-sm" id="reset-btn" style="padding:8px 12px; white-space:nowrap;" title="Reset progress">↻ Reset</button>
+  </div>
+</header>
+
+<div class="app">
+
+  <!-- SIDEBAR - Panel de categorías y filtros -->
+  <aside class="sidebar" id="sidebar">
+    <!-- Sección de categorías: permite filtrar problemas por tipo -->
+    <div class="sidebar-section">
+      <div class="sidebar-label">Categorías</div>
+      <!-- Botón "Todos" - muestra todos los problemas sin filtro -->
+      <button class="category-btn active" data-cat="all" onclick="filterCat(this,'all')">
+        <span class="cat-icon">🔍</span> Todos los problemas <span class="cat-count" id="cnt-all">0</span>
+      </button>
+      <button class="category-btn" data-cat="red" onclick="filterCat(this,'red')">
+        <span class="cat-icon">🌐</span> Red & Conectividad <span class="cat-count" id="cnt-red">0</span>
+      </button>
+      <button class="category-btn" data-cat="hardware" onclick="filterCat(this,'hardware')">
+        <span class="cat-icon">💻</span> Hardware <span class="cat-count" id="cnt-hardware">0</span>
+      </button>
+      <button class="category-btn" data-cat="software" onclick="filterCat(this,'software')">
+        <span class="cat-icon">⚙️</span> Software & OS <span class="cat-count" id="cnt-software">0</span>
+      </button>
+      <button class="category-btn" data-cat="seguridad" onclick="filterCat(this,'seguridad')">
+        <span class="cat-icon">🔒</span> Seguridad <span class="cat-count" id="cnt-seguridad">0</span>
+      </button>
+      <button class="category-btn" data-cat="rendimiento" onclick="filterCat(this,'rendimiento')">
+        <span class="cat-icon">⚡</span> Rendimiento <span class="cat-count" id="cnt-rendimiento">0</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN - Área central con título, estadísticas, búsqueda y grid de problemas -->
+  <main class="main">
+    <!-- Encabezado con título y descripción -->
+    <div class="main-header">
+      <h1 id="section-title">Diagnóstico de Soporte Técnico</h1>
+      <p id="section-sub">Seleccioná un problema para iniciar el diagnóstico paso a paso</p>
+    </div>
+
+    <!-- Fila de estadísticas: total, resueltos y críticos -->
+    <div class="stats-row">
+      <!-- Tarjeta 1: Total de problemas -->
+      <div class="stat-card">
+        <div class="stat-num" id="stat-total">12</div>
+        <div class="stat-label">Problemas</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" style="color:var(--green)" id="stat-solved">0</div>
+        <div class="stat-label">Resueltos</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" style="color:var(--accent2)" id="stat-crit">4</div>
+        <div class="stat-label">Críticos</div>
+      </div>
+    </div>
+
+    <!-- Barra de búsqueda: filtra problemas por palabra clave -->
+    <div class="search-wrap">
+      <span class="search-icon">🔎</span>
+      <input type="text" id="search-input" placeholder="Buscar problema o síntoma..." oninput="searchProblems(this.value)">
+    </div>
+
+    <!-- Título de sección -->
+    <div class="section-title">Problemas disponibles</div>
+    <!-- Grid de tarjetas de problemas (se rellena con JavaScript) -->
+    <div class="problem-grid" id="problem-grid"></div>
+  </main>
+
+  <!-- DIAGNOSTIC PANEL - Panel derecho que muestra los pasos del diagnóstico actual -->
+  <aside class="diag-panel" id="diag-panel">
+    <div class="diag-header">
+      <div class="diag-title">// Panel de Diagnóstico</div>
+      <div class="diag-problem-name" id="diag-title">Ningún problema seleccionado</div>
+    </div>
+    <div id="progress-section" style="display:none" class="progress-wrap" style="padding:16px 20px">
+      <div class="progress-label">
+        <span>Progreso</span><span id="progress-pct">0%</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+    </div>
+    <div class="diag-body" id="diag-body">
+      <div class="empty-diag">
+        <div class="big-icon">⚡</div>
+        <p>Seleccioná un problema del panel central para iniciar el diagnóstico guiado paso a paso.</p>
+      </div>
+    </div>
+  </aside>
+
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// SECCIÓN 1: DATOS DE PROBLEMAS
+// ═════════════════════════════════════════════════════════════════════════
+// Array de problemas técnicos con pasos de diagnóstico, severidad y soluciones
+
+const problems = [
+  {
+    id:'p1', cat:'red', severity:'critical',
+    icon:'📡', title:'Sin conexión a internet',
+    desc:'El equipo no accede a internet ni a recursos de red local.',
+    tags:['TCP/IP','DNS','Router','Firewall'],
+    time:'~8 min',
+    steps:[
+      { title:'Verificar hardware físico', desc:'Revisá que el cable Ethernet esté conectado, o que el WiFi esté activo. Asegurate de que las luces del router/modem parpadeen normalmente.', actions:['Conectado y luces OK','Hay problema físico'] },
+      { title:'Reiniciar adaptador de red', desc:'Desactivá y volvé a activar el adaptador de red desde el Administrador de dispositivos o Panel de Control → Conexiones de red.', actions:['Funciona','Sigue sin conectar'] },
+      { title:'Probar ping al gateway', desc:'Abrí CMD y ejecutá: <code class="t-cyan">ping 192.168.1.1</code> (o el gateway de tu red). Si hay respuesta, el problema es externo a tu LAN.', terminal:'C:\\> ping 192.168.1.1\nEnviando 4 paquetes...\n<span class="t-green">Respuesta desde 192.168.1.1: bytes=32 tiempo=1ms</span>\n<span class="t-muted">Estadísticas: Enviados=4, Recibidos=4</span>', actions:['Hay respuesta','No hay respuesta'] },
+      { title:'Renovar configuración IP', desc:'Ejecutá en CMD como administrador: <code class="t-cyan">ipconfig /release</code> y luego <code class="t-cyan">ipconfig /renew</code>. También podés probar <code class="t-cyan">netsh winsock reset</code>.', terminal:'<span class="t-yellow">ipconfig /release</span>\nConfiguración de IP de Windows liberada.\n<span class="t-yellow">ipconfig /renew</span>\n<span class="t-green">Configuración de IP renovada correctamente.</span>', actions:['Se resolvió','Continúa el problema'] },
+      { title:'Verificar DNS', desc:'Probá cambiar los servidores DNS a 8.8.8.8 y 8.8.4.4 (Google) o 1.1.1.1 (Cloudflare) en la configuración del adaptador.', actions:['Funciona con DNS nuevo','No cambia nada'] },
+    ],
+    solution: 'Contactá a tu proveedor de internet si el problema persiste. Podría ser una falla en el servicio o un equipo defectuoso.',
+  },
+  {
+    id:'p2', cat:'hardware', severity:'critical',
+    icon:'🔵', title:'Pantalla azul (BSOD)',
+    desc:'Windows muestra pantalla azul con código de error y reinicia el sistema.',
+    tags:['BSOD','Drivers','RAM','Kernel'],
+    time:'~15 min',
+    steps:[
+      { title:'Anotar el código de error', desc:'Identificá el stop code que aparece en la pantalla azul (ej: IRQL_NOT_LESS_OR_EQUAL, PAGE_FAULT_IN_NONPAGED_AREA). Esto orienta la causa.', actions:['Tengo el código','No pude leerlo'] },
+      { title:'Analizar archivos de volcado', desc:'Usando la herramienta <code class="t-cyan">WhoCrashed</code> o el Visor de eventos de Windows, analizá los archivos .dmp ubicados en C:\\Windows\\Minidump.', terminal:'<span class="t-cyan">Analizando dump: MINIDUMP_032526.dmp</span>\n<span class="t-yellow">Driver causante: ntoskrnl.exe</span>\n<span class="t-red">Error: MEMORY_MANAGEMENT (0x0000001A)</span>', actions:['Identifiqué el driver','No hay dumps'] },
+      { title:'Actualizar o revertir drivers', desc:'Si el error apunta a un driver, actualizalo desde el sitio oficial del fabricante, o revertí a la versión anterior desde el Administrador de dispositivos.', actions:['Driver actualizado/revertido','Driver no identificado'] },
+      { title:'Test de memoria RAM', desc:'Ejecutá <code class="t-cyan">mdsched.exe</code> (Diagnóstico de memoria de Windows) o MemTest86 desde USB para detectar fallas en la RAM.', terminal:'<span class="t-cyan">Windows Memory Diagnostic</span>\n<span class="t-green">Pasada 1/2: Sin errores detectados.</span>\n<span class="t-green">Pasada 2/2: Sin errores detectados.</span>\n<span class="t-muted">Resultado: Memoria OK</span>', actions:['RAM OK','RAM con errores'] },
+      { title:'Verificar integridad del sistema', desc:'Ejecutá <code class="t-cyan">sfc /scannow</code> en CMD como administrador para reparar archivos del sistema corruptos.', terminal:'<span class="t-yellow">sfc /scannow</span>\n<span class="t-cyan">Iniciando verificación...\n</span><span class="t-green">No se encontraron violaciones de integridad.</span>', actions:['Sistema OK','Archivos reparados/corruptos'] },
+    ],
+    solution: 'Si el problema persiste, considerá reinstalar Windows o llevar el equipo a servicio técnico para revisión de hardware.',
+  },
+  {
+    id:'p3', cat:'software', severity:'medium',
+    icon:'🐌', title:'Sistema operativo lento',
+    desc:'Windows tarda mucho en iniciar y las aplicaciones responden con demora.',
+    tags:['Rendimiento','Startup','RAM','Disco'],
+    time:'~10 min',
+    steps:[
+      { title:'Revisar el Administrador de tareas', desc:'Abrí el Administrador de tareas (Ctrl+Shift+Esc) y revisá la pestaña "Rendimiento". Verificá el uso de CPU, RAM y disco.', terminal:'<span class="t-cyan">CPU: 87%</span> | <span class="t-yellow">RAM: 91%</span> | <span class="t-red">Disco: 100%</span>\n<span class="t-muted">Proceso pico: SearchIndexer.exe (45%)</span>', actions:['Recurso al 100%','Todo parece normal'] },
+      { title:'Deshabilitar programas de inicio', desc:'En el Administrador de tareas, pestaña "Inicio", deshabilitá todo lo que no sea esencial (OneDrive, Teams, Skype, etc.).', actions:['Deshabilitados','Ya no había muchos'] },
+      { title:'Limpiar disco y archivos temporales', desc:'Ejecutá <code class="t-cyan">cleanmgr</code> o la herramienta "Liberador de espacio en disco". También podés borrar <code class="t-cyan">%temp%</code> desde Ejecutar.', terminal:'<span class="t-cyan">Liberador de espacio en disco</span>\n<span class="t-yellow">Archivos temporales: 3.2 GB</span>\n<span class="t-green">Espacio liberado: 3.2 GB</span>', actions:['Liberé espacio','Disco ya tenía espacio'] },
+      { title:'Verificar el disco duro', desc:'Ejecutá <code class="t-cyan">chkdsk C: /f /r</code> para verificar y reparar errores en el disco. Reiniciá para aplicarlo.', terminal:'<span class="t-yellow">chkdsk C: /f /r</span>\n<span class="t-muted">Verificando sistema de archivos...\n</span><span class="t-green">Verificación completada. Sin errores.</span>', actions:['Sin errores','Errores encontrados/reparados'] },
+    ],
+    solution: 'Si el equipo sigue lento, considerá agregar más RAM o reemplazar el disco HDD por un SSD.',
+  },
+  {
+    id:'p4', cat:'red', severity:'medium',
+    icon:'📶', title:'WiFi intermitente',
+    desc:'La conexión inalámbrica se cae y reconecta sola de manera aleatoria.',
+    tags:['WiFi','Driver','Router','Interferencia'],
+    time:'~7 min',
+    steps:[
+      { title:'Comprobar interferencias', desc:'Otros dispositivos en 2.4GHz (microondas, Bluetooth, otros routers) pueden interferir. Probá conectar en banda de 5GHz si el router lo soporta.', actions:['Cambié a 5GHz','Solo 2.4GHz disponible'] },
+      { title:'Actualizar driver WiFi', desc:'Bajá el driver más reciente del adaptador WiFi desde el sitio del fabricante del equipo e instalalo.', actions:['Driver actualizado','Driver ya era actual'] },
+      { title:'Deshabilitar ahorro de energía del adaptador', desc:'En Administrador de dispositivos → Adaptador WiFi → Administración de energía, desactivá "Permitir que el equipo apague este dispositivo para ahorrar energía".', actions:['Configuración cambiada','Ya estaba desactivado'] },
+      { title:'Reiniciar el router', desc:'Apagá el router por 30 segundos y volvelo a encender. Si el problema es del ISP, verificá el estado del servicio.', actions:['Problema resuelto','Sigue intermitente'] },
+    ],
+    solution: 'Si el problema sigue, el adaptador WiFi puede estar defectuoso. Probá con un adaptador USB externo.',
+  },
+  {
+    id:'p5', cat:'hardware', severity:'critical',
+    icon:'🔥', title:'Equipo se sobrecalienta',
+    desc:'La PC/notebook se apaga sola o funciona muy lento por exceso de temperatura.',
+    tags:['Temperatura','Ventilador','Pasta térmica','BIOS'],
+    time:'~12 min',
+    steps:[
+      { title:'Monitorear temperatura', desc:'Usá <code class="t-cyan">HWMonitor</code> o <code class="t-cyan">Core Temp</code> para ver la temperatura de la CPU. Una temperatura normal en reposo es 30-50°C. Bajo carga, 65-80°C.', terminal:'<span class="t-cyan">CPU Temp: </span><span class="t-red">94°C</span>\n<span class="t-cyan">GPU Temp: </span><span class="t-yellow">78°C</span>\n<span class="t-muted">Fan Speed: 3200 RPM</span>\n<span class="t-red">⚠ Temperatura crítica detectada</span>', actions:['Temperatura >85°C','Temperatura normal'] },
+      { title:'Limpiar ventilación y ventiladores', desc:'Apagá el equipo y limpiá las rejillas de ventilación con aire comprimido. En laptops, limpiá la entrada y salida de aire. En PCs, limpiá los ventiladores del gabinete.', actions:['Limpiado, mejoró','Sigue caliente'] },
+      { title:'Verificar velocidad de ventiladores', desc:'En el BIOS/UEFI o con HWMonitor verificá que los ventiladores giren a velocidad normal. Un ventilador que no gira requiere reemplazo.', actions:['Ventiladores OK','Ventilador defectuoso'] },
+      { title:'Renovar pasta térmica', desc:'En equipos con más de 3-4 años, la pasta térmica puede haberse secado. Retirá el disipador de la CPU, limpiá la pasta vieja y aplicá pasta nueva (tipo MX-4 o Arctic Silver).', actions:['Pasta renovada','No tengo cómo hacerlo'] },
+    ],
+    solution: 'Llevá el equipo a servicio técnico para renovar la pasta térmica y verificar el estado del sistema de refrigeración.',
+  },
+  {
+    id:'p6', cat:'seguridad', severity:'critical',
+    icon:'🦠', title:'Posible virus o malware',
+    desc:'El sistema muestra comportamiento extraño: popups, procesos desconocidos o lentitud extrema.',
+    tags:['Malware','Antivirus','Proceso','Seguridad'],
+    time:'~20 min',
+    steps:[
+      { title:'Identificar procesos sospechosos', desc:'En el Administrador de tareas, buscá procesos con nombres raros o que consuman mucha CPU/RAM. Buscalos en Google si no los reconocés.', terminal:'<span class="t-red">⚠ Proceso sospechoso detectado:</span>\n<span class="t-yellow">svchost32.exe</span> - CPU: 45%\n<span class="t-muted">Ruta: C:\\Users\\User\\AppData\\Roaming</span>\n<span class="t-red">(No es un proceso legítimo de Windows)</span>', actions:['Encontré proceso sospechoso','Todo parece normal'] },
+      { title:'Ejecutar análisis con Malwarebytes', desc:'Descargá <code class="t-cyan">Malwarebytes Free</code> y ejecutá un análisis completo del sistema. Es el estándar para detectar malware que el antivirus común no ve.', actions:['Malware encontrado y eliminado','Análisis limpio'] },
+      { title:'Análisis con Windows Defender Offline', desc:'En Seguridad de Windows → Protección antivirus → Análisis avanzado → Análisis de Microsoft Defender sin conexión. Reinicia y analiza antes del SO.', terminal:'<span class="t-cyan">Windows Defender - Análisis sin conexión</span>\n<span class="t-yellow">Analizando sector de arranque...</span>\n<span class="t-yellow">Analizando archivos del sistema...</span>\n<span class="t-green">Análisis completado. 0 amenazas.</span>', actions:['Sin amenazas','Amenazas eliminadas'] },
+      { title:'Cambiar contraseñas importantes', desc:'Si hubo malware, cambiá contraseñas de email, banco y redes sociales desde otro dispositivo seguro. Habilitá autenticación de dos factores.', actions:['Contraseñas cambiadas','Listo'] },
+    ],
+    solution: 'Si el sistema fue comprometido severamente, la opción más segura es formatear y reinstalar el sistema operativo.',
+  },
+  {
+    id:'p7', cat:'software', severity:'low',
+    icon:'🖨️', title:'Impresora no imprime',
+    desc:'La impresora no responde, el trabajo se queda en la cola o aparece offline.',
+    tags:['Impresora','Driver','Spooler','USB'],
+    time:'~5 min',
+    steps:[
+      { title:'Verificar estado de la impresora', desc:'En Dispositivos e impresoras, chequeá que no figure como "Sin conexión". Si figura offline, hacé clic derecho → Ver en impresión → Impresora → Usar impresora en modo sin conexión (destildar).', actions:['Estaba en offline, corregido','Figura como normal'] },
+      { title:'Limpiar la cola de impresión', desc:'Abrí CMD como admin y ejecutá: <code class="t-cyan">net stop spooler</code>, luego borrá los archivos de <code class="t-cyan">C:\\Windows\\System32\\spool\\PRINTERS</code>, y ejecutá <code class="t-cyan">net start spooler</code>.', terminal:'<span class="t-yellow">net stop spooler</span>\n<span class="t-green">El servicio Cola de impresión se detuvo.</span>\n<span class="t-yellow">net start spooler</span>\n<span class="t-green">El servicio Cola de impresión se inició.</span>', actions:['Funciona ahora','Sigue sin imprimir'] },
+      { title:'Reinstalar driver de impresora', desc:'Desde Dispositivos e impresoras, eliminá la impresora. Luego descargá el driver más reciente del sitio del fabricante e instalalo.', actions:['Driver reinstalado','No encontré el driver'] },
+    ],
+    solution: 'Verificá el cable USB o conexión de red. Si es una impresora de red, confirmá que tenga IP correcta.',
+  },
+  {
+    id:'p8', cat:'rendimiento', severity:'medium',
+    icon:'💾', title:'Disco duro casi lleno',
+    desc:'El disco C: está al límite de capacidad afectando el rendimiento del sistema.',
+    tags:['Disco','Almacenamiento','Limpieza','WinSxS'],
+    time:'~8 min',
+    steps:[
+      { title:'Identificar qué ocupa espacio', desc:'Usá <code class="t-cyan">WinDirStat</code> o el Explorador de almacenamiento de Windows para visualizar qué archivos y carpetas consumen más espacio.', terminal:'<span class="t-cyan">Análisis de disco C:</span>\n<span class="t-red">Windows\\WinSxS: 12.4 GB</span>\n<span class="t-yellow">Users\\Descargas: 8.2 GB</span>\n<span class="t-yellow">Program Files: 6.1 GB</span>', actions:['Identifiqué archivos grandes','Continúo'] },
+      { title:'Ejecutar Liberador de espacio de disco', desc:'Escribí <code class="t-cyan">cleanmgr</code> en Ejecutar. Chequeá todas las opciones, especialmente "Archivos de actualización de Windows" y "Archivos de volcado".', terminal:'<span class="t-cyan">Calculando espacio a liberar...</span>\n<span class="t-yellow">Actualizaciones de Windows: 4.8 GB</span>\n<span class="t-yellow">Archivos temporales: 2.1 GB</span>\n<span class="t-green">Total a liberar: 6.9 GB</span>', actions:['Liberé espacio','Poco espacio liberado'] },
+      { title:'Desinstalar programas no usados', desc:'En Configuración → Aplicaciones, ordená por tamaño y desinstalá programas que no uses. Juegos instalados suelen ocupar mucho espacio.', actions:['Desinstalé programas','Ya no había mucho'] },
+      { title:'Mover archivos a disco externo', desc:'Mové documentos, fotos, videos y descargas a un disco externo o almacenamiento en la nube (OneDrive, Google Drive).', actions:['Archivos movidos','Listo'] },
+    ],
+    solution: 'Considerá ampliar el almacenamiento con un disco externo o migrar el sistema a un SSD más grande.',
+  },
+  {
+    id:'p9', cat:'red', severity:'low',
+    icon:'🔗', title:'No puede acceder a sitios web',
+    desc:'El navegador muestra errores de DNS o conexión rechazada aunque internet funciona.',
+    tags:['DNS','Hosts','Proxy','Navegador'],
+    time:'~6 min',
+    steps:[
+      { title:'Probar con otro navegador', desc:'Intentá acceder a la misma web desde otro navegador (Chrome, Edge, Firefox). Si funciona, el problema es específico del navegador.', actions:['Funciona en otro navegador','Falla en todos'] },
+      { title:'Limpiar caché DNS', desc:'En CMD ejecutá <code class="t-cyan">ipconfig /flushdns</code>. Esto borra la caché de resolución de nombres que puede estar corrupta.', terminal:'<span class="t-yellow">ipconfig /flushdns</span>\n<span class="t-green">Caché de resolución DNS vaciada correctamente.</span>', actions:['Se solucionó','Sigue sin funcionar'] },
+      { title:'Verificar archivo hosts', desc:'Abrí <code class="t-cyan">C:\\Windows\\System32\\drivers\\etc\\hosts</code> como administrador. Asegurate de que no haya entradas que bloqueen el sitio al que querés acceder.', actions:['Archivo OK','Encontré entradas sospechosas'] },
+      { title:'Deshabilitar proxy y VPN', desc:'En Configuración → Red → Proxy, desactivá todos los proxies. Si usás VPN, desconectala temporalmente para probar.', actions:['Se resolvió','Sin proxy, sigue fallando'] },
+    ],
+    solution: 'Si solo falla con ciertos sitios, puede ser un bloqueo del ISP o un problema con el servidor de esos sitios.',
+  },
+  {
+    id:'p10', cat:'hardware', severity:'medium',
+    icon:'🔋', title:'Laptop no carga la batería',
+    desc:'El adaptador de corriente está conectado pero la batería no aumenta su carga.',
+    tags:['Batería','ACPI','Driver','Cargador'],
+    time:'~6 min',
+    steps:[
+      { title:'Verificar el cargador', desc:'Probá el cargador en otro tomacorriente. Revisá el cable en busca de dobladuras o daños. Confirmá que el LED del cargador esté encendido.', actions:['Cargador OK','Cargador defectuoso'] },
+      { title:'Resetear la batería por software', desc:'Con el cargador conectado, abrí CMD como admin y ejecutá: <code class="t-cyan">powercfg /batteryreport</code> para ver el estado real de la batería.', terminal:'<span class="t-cyan">Generando reporte de batería...</span>\n<span class="t-yellow">Capacidad de diseño: 45,600 mWh</span>\n<span class="t-red">Capacidad actual: 21,300 mWh</span>\n<span class="t-red">Estado: DEGRADADA (46%)</span>', actions:['Batería degradada','Batería OK'] },
+      { title:'Reinstalar driver ACPI', desc:'En Administrador de dispositivos → Baterías, desinstalá el "Adaptador de CA Microsoft ACPI" y el "Batería de método de control ACPI Microsoft". Reiniciá el equipo.', actions:['Driver reinstalado, carga OK','No cambió'] },
+    ],
+    solution: 'Si la batería está degradada al 50% o menos de su capacidad original, necesita ser reemplazada.',
+  },
+  {
+    id:'p11', cat:'seguridad', severity:'medium',
+    icon:'🔐', title:'Cuenta bloqueada o contraseña olvidada',
+    desc:'No podés acceder a Windows, email u otras cuentas por contraseña incorrecta o cuenta bloqueada.',
+    tags:['Contraseña','Cuenta','Active Directory','Reset'],
+    time:'~5 min',
+    steps:[
+      { title:'Verificar Bloq Mayús y teclado', desc:'Asegurate de que Bloq Mayús esté desactivado y que el teclado funcione correctamente. Las contraseñas son sensibles a mayúsculas.', actions:['No era el teclado','Era Bloq Mayús, solucionado'] },
+      { title:'Usar opción de recuperación de cuenta', desc:'Para cuentas Microsoft/Gmail/etc., usá la opción "¿Olvidaste tu contraseña?" en la página de login y seguí los pasos de verificación por email o teléfono.', actions:['Recuperé el acceso','No tengo acceso al email/teléfono de recuperación'] },
+      { title:'Resetear contraseña local de Windows', desc:'Reiniciá en Modo Seguro o usá un disco de recuperación de Windows 10/11. Podés usar la cuenta de Administrador integrada si fue habilitada previamente.', actions:['Acceso recuperado','Necesito ayuda avanzada'] },
+    ],
+    solution: 'Contactá al administrador de TI si es una cuenta corporativa. Para acceso local irrecuperable, puede requerir reinstalación del sistema.',
+  },
+  {
+    id:'p12', cat:'rendimiento', severity:'low',
+    icon:'🖥️', title:'Pantalla parpadea o artefactos visuales',
+    desc:'La pantalla muestra parpadeos, líneas, colores incorrectos o artefactos gráficos.',
+    tags:['GPU','Driver','HDMI','Monitor','DisplayPort'],
+    time:'~7 min',
+    steps:[
+      { title:'Probar con otro cable/monitor', desc:'Reemplazá el cable HDMI/DisplayPort por uno nuevo. Si podés, conectá a otro monitor para saber si el problema es del monitor o de la PC.', actions:['Monitor/cable era el problema','El problema persiste en otro monitor'] },
+      { title:'Actualizar driver de video', desc:'Desde la web de NVIDIA, AMD o Intel, descargá e instalá la versión más reciente del driver de video. Usá DDU (Display Driver Uninstaller) para limpiar antes de instalar.', terminal:'<span class="t-cyan">DDU - Display Driver Uninstaller</span>\n<span class="t-yellow">Removiendo drivers NVIDIA...</span>\n<span class="t-green">Drivers eliminados. Reiniciando...</span>\n<span class="t-green">Nuevo driver instalado: v560.94</span>', actions:['Driver actualizado, funciona','Continúa el parpadeo'] },
+      { title:'Verificar temperatura de la GPU', desc:'Usá HWMonitor o GPU-Z para ver la temperatura de la GPU. Si supera 85°C en reposo, puede ser refrigeración deficiente.', actions:['Temperatura OK','GPU con alta temperatura'] },
+      { title:'Revisar frecuencia de actualización', desc:'En Configuración → Pantalla → Configuración de pantalla avanzada, verificá que la frecuencia de actualización sea la correcta para tu monitor (60Hz, 120Hz, 144Hz, etc.).', actions:['Frecuencia corregida','Ya estaba correcta'] },
+    ],
+    solution: 'Si los artefactos persisten, la GPU puede estar fallando. Considerá reemplazarla o usar la gráfica integrada del procesador.',
+  },
+];
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SECCIÓN 2: ESTADO GLOBAL (VARIABLES QUE CONTROLAN LA APLICACIÓN)
+// ═════════════════════════════════════════════════════════════════════════
+
+// Problema actualmente seleccionado
+let currentProblem = null;
+let currentStep = 0;              // Índice del paso actual en el diagnóstico
+let solvedCount = 0;              // Cantidad de problemas resueltos
+let solvedIds = new Set();        // IDs de problemas marcados como resueltos
+let currentCat = 'all';           // Categoría actualmente filtrada
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SECCIÓN 3: INICIALIZACIÓN
+// ═════════════════════════════════════════════════════════════════════════
+
+// Función de inicialización que se ejecuta al cargar la página
+function init() {
+  updateCounts();
+  renderGrid(problems);
+  setInterval(updateClock, 1000);
+  updateClock();
+}
+
+// Actualiza la hora en el header cada segundo
+function updateClock() {
+  document.getElementById('clock').textContent = new Date().toLocaleTimeString('es-AR');
+}
+
+// Actualiza los contadores de problemas por categoría
+function updateCounts() {
+  const cats = ['red','hardware','software','seguridad','rendimiento'];
+  document.getElementById('cnt-all').textContent = problems.length;
+  cats.forEach(c => {
+    document.getElementById('cnt-'+c).textContent = problems.filter(p=>p.cat===c).length;
+  });
+  const crit = problems.filter(p=>p.severity==='critical').length;
+  document.getElementById('stat-total').textContent = problems.length;
+  document.getElementById('stat-crit').textContent = crit;
+  document.getElementById('stat-solved').textContent = solvedCount;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SECCIÓN 4: RENDERIZADO DEL GRID DE PROBLEMAS
+// ═════════════════════════════════════════════════════════════════════════
+
+// Renderiza las tarjetas de problemas en el grid principal
+function renderGrid(list) {
+  const grid = document.getElementById('problem-grid');
+  grid.innerHTML = '';
+  list.forEach((p,i) => {
+    const card = document.createElement('div');
+    card.className = `problem-card ${p.severity === 'critical' ? 'critical' : p.severity === 'medium' ? 'warning' : ''}`;
+    card.style.animationDelay = `${i * 0.04}s`;
+    card.style.opacity = '0';
+    card.style.animation = `fade-up 0.3s ${i*0.05}s forwards`;
+
+    const badgeCls = p.severity==='critical'?'badge-critical':p.severity==='medium'?'badge-medium':'badge-low';
+    const sevText = p.severity==='critical'?'CRÍTICO':p.severity==='medium'?'MEDIO':'BAJO';
+
+    const tagsHtml = p.tags.map(t=>`<span class="tag">${t}</span>`).join('');
+    const solvedMark = solvedIds.has(p.id) ? ' ✅' : '';
+
+    card.innerHTML = `
+      <div class="card-top">
+        <span class="card-icon">${p.icon}</span>
+        <span class="severity-badge ${badgeCls}">${sevText}</span>
+      </div>
+      <div class="card-title">${p.title}${solvedMark}</div>
+      <div class="card-desc">${p.desc}</div>
+      <div class="tags">${tagsHtml}</div>
+      <div class="card-meta">
+        <span>⏱ ${p.time}</span>
+        <span>·</span>
+        <span>${p.steps.length} pasos</span>
+      </div>`;
+    card.onclick = () => openDiag(p);
+    grid.appendChild(card);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SECCIÓN 5: FILTRADO Y BÚSQUEDA
+// ═════════════════════════════════════════════════════════════════════════
+
+// Filtra problemas por categoría seleccionada
+function filterCat(btn, cat) {
+  currentCat = cat;
+  document.querySelectorAll('.category-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const filtered = cat==='all' ? problems : problems.filter(p=>p.cat===cat);
+  renderGrid(filtered);
+}
+
+// Busca problemas por palabra clave en título, descripción o tags
+function searchProblems(q) {
+  const filtered = problems.filter(p => {
+    const s = q.toLowerCase();
+    return p.title.toLowerCase().includes(s) || p.desc.toLowerCase().includes(s) || p.tags.some(t=>t.toLowerCase().includes(s));
+  });
+  renderGrid(filtered);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SECCIÓN 6: LÓGICA DEL DIAGNÓSTICO
+// ═════════════════════════════════════════════════════════════════════════
+
+// Abre el panel de diagnóstico para un problema específico
+function openDiag(problem) {
+  currentProblem = problem;
+  currentStep = 0;
+  document.getElementById('diag-title').textContent = problem.icon + ' ' + problem.title;
+  document.getElementById('progress-section').style.display = 'block';
+  renderStep();
+}
+
+// Renderiza el paso actual del diagnóstico con su descripción y opciones
+function renderStep() {
+  const p = currentProblem;              // Obtiene el problema actual
+  const s = p.steps[currentStep];        // Obtiene el paso actual
+  const pct = Math.round((currentStep / p.steps.length) * 100);
+
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-pct').textContent = pct + '%';
+
+  const body = document.getElementById('diag-body');
+
+  const stepsList = p.steps.map((step, i) => {
+    const done = i < currentStep;
+    const active = i === currentStep;
+    return `<li class="step-item ${done?'done':''}" style="animation-delay:${i*0.05}s; opacity:${active||done?1:0.35}">
+      <div class="step-num">${done?'✓':(i+1)}</div>
+      <div class="step-content">
+        <div class="step-title">${step.title}</div>
+        ${active ? `<div class="step-desc">${step.desc.replace(/<code class="t-cyan">/g,'<code style="color:var(--accent);font-family:var(--mono);font-size:0.7em;background:rgba(0,229,255,0.08);padding:1px 5px;border-radius:3px;">').replace(/<\/code>/g,'</code>')}</div>` : ''}
+        ${active && step.terminal ? `<div class="terminal">${step.terminal}</div>` : ''}
+        ${active ? `<div class="step-actions">${step.actions.map((a,ai)=>`<button class="btn-sm ${ai===0?'btn-yes':'btn-no'}" onclick="advanceStep(${ai})">${a}</button>`).join('')}</div>` : ''}
+      </div>
+    </li>`;
+  }).join('');
+
+  body.innerHTML = `
+    <div class="section-title">Pasos del diagnóstico</div>
+    <ul class="step-list">${stepsList}</ul>
+  `;
+}
+
+// Avanza al siguiente paso o finaliza el diagnóstico
+// choice: 0 = botón afirmativo, 1+ = botón negativo
+function advanceStep(choice) {
+  const p = currentProblem;
+  currentStep++;
+
+  if (currentStep >= p.steps.length) {
+    // Done
+    const solved = choice === 0;
+    if (solved) {
+      solvedIds.add(p.id);
+      solvedCount++;
+      document.getElementById('stat-solved').textContent = solvedCount;
+    }
+    document.getElementById('progress-fill').style.width = '100%';
+    document.getElementById('progress-pct').textContent = '100%';
+    showResult(solved, p.solution);
+    const filtered = currentCat==='all' ? problems : problems.filter(pr=>pr.cat===currentCat);
+    renderGrid(filtered);
+  } else {
+    renderStep();
+  }
+}
+
+// Muestra el resultado final del diagnóstico (resuelto o escalado)
+// solved: boolean que indica si el problema fue resuelto
+function showResult(solved, solution) {
+  const body = document.getElementById('diag-body');
+  const p = currentProblem;
+
+  const stepsList = p.steps.map((step, i) => `
+    <li class="step-item done" style="animation-delay:${i*0.05}s">
+      <div class="step-num">✓</div>
+      <div class="step-content">
+        <div class="step-title" style="color:var(--text-muted)">${step.title}</div>
+      </div>
+    </li>`).join('');
+
+  const resultHtml = solved
+    ? `<div class="result-box result-solved">
+        <div class="result-title" style="color:var(--green)">✅ Problema resuelto</div>
+        <div class="result-desc">El diagnóstico fue completado exitosamente. El problema fue identificado y solucionado.</div>
+       </div>`
+    : `<div class="result-box result-escalate">
+        <div class="result-title" style="color:var(--accent2)">⚠️ Escalado a Nivel 2</div>
+        <div class="result-desc">${solution}</div>
+        <button class="btn-primary" style="margin-top:10px;background:var(--accent2);color:#fff" onclick="openDiag(currentProblem)">🔄 Reiniciar diagnóstico</button>
+       </div>`;
+
+  body.innerHTML = `
+    <div class="section-title">Diagnóstico completado</div>
+    <ul class="step-list">${stepsList}</ul>
+    ${resultHtml}
+    <button class="btn-primary" onclick="openDiag(currentProblem)">🔄 Repetir diagnóstico</button>
+  `;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// EJECUCIÓN PRINCIPAL
+// ═════════════════════════════════════════════════════════════════════════
+init();
+</script>
+</body>
+<script src="features.js"></script><script src="export-resources.js"></script></html>
+
+

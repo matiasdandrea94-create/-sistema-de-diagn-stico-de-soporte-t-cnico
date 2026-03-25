@@ -1,0 +1,299 @@
+[
+  {
+    "id": "p13",
+    "cat": "software",
+    "severity": "medium",
+    "icon": "💥",
+    "title": "Aplicación congela o no responde",
+    "desc": "Una app se queda congelada y no responde durante varios segundos.",
+    "tags": ["App", "Proceso", "Memoria"],
+    "time": "~8 min",
+    "steps": [
+      {
+        "title": "Forzar cierre con Task Manager",
+        "desc": "Presioná Ctrl+Shift+Esc, encontrá la app y hacé clic en Finalizar tarea.",
+        "actions": ["App cerrada", "Sigue congelada"]
+      },
+      {
+        "title": "Verificar uso de recursos",
+        "desc": "En Task Manager, reviá si usa 100% CPU/RAM. Alto uso indica falta de recursos.",
+        "actions": ["Alto uso detectado", "Uso normal"]
+      },
+      {
+        "title": "Actualizar la aplicación",
+        "desc": "Descargá la última versión desde el sitio oficial.",
+        "actions": ["Actualizada", "Ya estaba actualizada"]
+      },
+      {
+        "title": "Deshabilitar extensiones",
+        "desc": "Si es navegador, desactiva extensions y probá si se resuelve.",
+        "actions": ["Resuelto", "Problema persiste"]
+      }
+    ],
+    "solution": "Desinstala y reinstala la aplicación. Si persiste, hay conflicto con otro software."
+  },
+  {
+    "id": "p14",
+    "cat": "red",
+    "severity": "medium",
+    "icon": "📡",
+    "title": "VPN no funciona o se desconecta",
+    "desc": "No podés conectar a VPN o se desconecta constantemente.",
+    "tags": ["VPN", "Protocolo", "Conexión"],
+    "time": "~6 min",
+    "steps": [
+      {
+        "title": "Verificar credenciales",
+        "desc": "Usuario y contraseña correctos. Probá sin internet primero.",
+        "actions": ["Credenciales OK", "Incorrecto"]
+      },
+      {
+        "title": "Comprobar protocolo VPN",
+        "desc": "Algunos requieren L2TP, OpenVPN. Revisá config recomendada.",
+        "actions": ["Protocolo correcto", "Cambié protocolo"]
+      },
+      {
+        "title": "Descargar configuración",
+        "desc": "Algunos VPN requieren archivo .ovpn. Descargalo nuevamente.",
+        "actions": ["Descargado", "No requiere"]
+      },
+      {
+        "title": "Desactivar antivirus",
+        "desc": "Temporalmente desactiva firewall/antivirus para probar.",
+        "actions": ["VPN funciona", "No era antivirus"]
+      }
+    ],
+    "solution": "Contactá al proveedor VPN. Podría ser falla del servidor."
+  },
+  {
+    "id": "p15",
+    "cat": "hardware",
+    "severity": "medium",
+    "icon": "🔊",
+    "title": "Sin sonido o audio distorsionado",
+    "desc": "No hay audio, solo ruido extraño o volumen muy bajo.",
+    "tags": ["Sonido", "Audio", "Driver", "Parlante"],
+    "time": "~5 min",
+    "steps": [
+      {
+        "title": "Verificar volumen master",
+        "desc": "Click en ícono de volumen. No debe estar muteado, mín 50%.",
+        "actions": ["Volumen OK", "Era mute"]
+      },
+      {
+        "title": "Comprobar dispositivo activo",
+        "desc": "Configuración → Sonidos. Verifica dispositivo (parlantes/auriculares).",
+        "actions": ["Dispositivo correcto", "Cambié"]
+      },
+      {
+        "title": "Actualizar driver sonido",
+        "desc": "Administrador dispositivos → Dispositivos de sonido → Update driver.",
+        "actions": ["Driver actualizado", "Sin update disponible"]
+      },
+      {
+        "title": "Reiniciar servicio de audio",
+        "desc": "Servicios → Windows Audio → Reinicia.",
+        "actions": ["Servicios OK", "Audio restaurado"]
+      }
+    ],
+    "solution": "Si no funciona, es problema de hardware. Prueba auriculares USB."
+  },
+  {
+    "id": "p16",
+    "cat": "rendimiento",
+    "severity": "low",
+    "icon": "🎮",
+    "title": "Juego con FPS bajo o lag",
+    "desc": "Videojuego funciona lentamente, se congela o tiene lag online.",
+    "tags": ["Juego", "GPU", "FPS", "Lag"],
+    "time": "~10 min",
+    "steps": [
+      {
+        "title": "Bajar configuración gráfica",
+        "desc": "Reduce resolución, sombras, texturas. Comienza bajo, sube después.",
+        "actions": ["FPS mejoró", "Sigue igual"]
+      },
+      {
+        "title": "Cerrar programas background",
+        "desc": "Cierra navegador, Discord, Spotify, etc.",
+        "actions": ["FPS aumentó", "Sin cambios"]
+      },
+      {
+        "title": "Monitorear temperatura GPU",
+        "desc": "Afterburner o GPU-Z. Si supera 85°C, limpia ventiladores.",
+        "actions": ["Temp OK", "Muy caliente"]
+      },
+      {
+        "title": "Cambiar servidor",
+        "desc": "Si es online, cambia a servidor más cercano.",
+        "actions": ["Lag reducido", "Lag persiste"]
+      }
+    ],
+    "solution": "Actualiza GPU o reduce permanentemente config gráfica."
+  },
+  {
+    "id": "p17",
+    "cat": "software",
+    "severity": "low",
+    "icon": "📦",
+    "title": "Instalador no abre o da error",
+    "desc": ".exe o .msi no abre, da error o se queda pegado.",
+    "tags": ["Instalador", "Archivo", "Permisos"],
+    "time": "~5 min",
+    "steps": [
+      {
+        "title": "Ejecutar como administrador",
+        "desc": "Click derecho → Ejecutar como administrador.",
+        "actions": ["Abre OK", "Sigue sin abrir"]
+      },
+      {
+        "title": "Descargar nuevamente",
+        "desc": "Archivo puede estar corrupto. Descargalo otra vez.",
+        "actions": ["Funciona", "Error continúa"]
+      },
+      {
+        "title": "Desactivar antivirus",
+        "desc": "Antivirus puede estar bloqueando el instalador.",
+        "actions": ["Abre OK", "No era antivirus"]
+      },
+      {
+        "title": "Verificar espacio disco",
+        "desc": "Min 1GB libre en C:. Si lleno, libera espacio primero.",
+        "actions": ["Instalación OK", "Sin espacio"]
+      }
+    ],
+    "solution": "Descarga versi&oacute;n portable o contacta al desarrollador."
+  },
+  {
+    "id": "p18",
+    "cat": "seguridad",
+    "severity": "critical",
+    "icon": "⚠️",
+    "title": "Pop-ups o anuncios no deseados",
+    "desc": "Constantemente aparecen pop-ups, avisos publicitarios.",
+    "tags": ["Adware", "Browser", "Malware", "Pop-up"],
+    "time": "~15 min",
+    "steps": [
+      {
+        "title": "Ejecutar Malwarebytes",
+        "desc": "Descarga y ejecuta análisis completo del sistema.",
+        "actions": ["Adware encontrado", "Limpio"]
+      },
+      {
+        "title": "Revisar extensiones navegador",
+        "desc": "Chrome/Edge/Firefox → Extensiones. Desinstala sospechosas.",
+        "actions": ["Removida extension", "OK"]
+      },
+      {
+        "title": "Cambiar página inicio",
+        "desc": "Verifica que sea Google o buscador confiable, no sitio raro.",
+        "actions": ["Corregida", "Ya correcta"]
+      },
+      {
+        "title": "Limpiar DNS",
+        "desc": "CMD: ipconfig /flushdns",
+        "actions": ["Limpiado", "Sin cambios"]
+      }
+    ],
+    "solution": "Instala uBlock Origin o AdBlock. Mantén antivirus actualizado."
+  },
+  {
+    "id": "p19",
+    "cat": "hardware",
+    "severity": "medium",
+    "icon": "🖱️",
+    "title": "Mouse o teclado no responden",
+    "desc": "Periférico USB/inalámbrico no funciona.",
+    "tags": ["USB", "Periférico", "Wireless", "Driver"],
+    "time": "~6 min",
+    "steps": [
+      {
+        "title": "Verificar conexión",
+        "desc": "USB: otro puerto 3.0. Inalámbrico: batería y receptor cercano.",
+        "actions": ["Funciona", "Sigue igual"]
+      },
+      {
+        "title": "Reiniciar dispositivo",
+        "desc": "Apaga 10 seg y enciende. Algunos se quedan sin respuesta.",
+        "actions": ["Ahora responde", "Sin cambios"]
+      },
+      {
+        "title": "Desinstalar driver",
+        "desc": "Administrador dispositivos → Desinstala. Desconecta y reconecta.",
+        "actions": ["Funciona", "Persiste"]
+      },
+      {
+        "title": "Probar en otro equipo",
+        "desc": "Si es posible, conecta a otra PC.",
+        "actions": ["Defectuoso", "Problema en mi PC"]
+      }
+    ],
+    "solution": "Si es inalámbrico viejo, pilas internas pueden estar dañadas."
+  },
+  {
+    "id": "p20",
+    "cat": "software",
+    "severity": "low",
+    "icon": "🔄",
+    "title": "Windows Update no instala actualizaciones",
+    "desc": "Sistema dice que hay updates pero no las instala.",
+    "tags": ["Actualización", "Windows Update", "Servicio"],
+    "time": "~10 min",
+    "steps": [
+      {
+        "title": "Reiniciar servicio",
+        "desc": "services.msc → Windows Update → Reinicia.",
+        "actions": ["Instaladas", "Sin cambios"]
+      },
+      {
+        "title": "Ejecutar Troubleshooter",
+        "desc": "Configuración → Solución problemas → Windows Update.",
+        "actions": ["Resuelto", "Persiste"]
+      },
+      {
+        "title": "Limpiar caché",
+        "desc": "CMD admin: DISM.exe /online /Cleanup-Image /StartComponentCleanup",
+        "actions": ["Limpiado", "Igual"]
+      },
+      {
+        "title": "Forzar búsqueda",
+        "desc": "Configuración → Update → Buscar actualizaciones.",
+        "actions": ["Instaladas", "Sin updates"]
+      }
+    ],
+    "solution": "Usa Media Creation Tool de Microsoft para descargar manualmente."
+  },
+  {
+    "id": "p21",
+    "cat": "red",
+    "severity": "medium",
+    "icon": "🛡️",
+    "title": "Firewall bloquea conexión de aplicación",
+    "desc": "App no puede conectar internet aunque hay conexión.",
+    "tags": ["Firewall", "Puerto", "Red", "Excepciones"],
+    "time": "~5 min",
+    "steps": [
+      {
+        "title": "Agregar excepción",
+        "desc": "Firewall → Permitir app → Selecciona app y marca público/privado.",
+        "actions": ["Agregada, funciona", "Sin cambios"]
+      },
+      {
+        "title": "Verificar puerto",
+        "desc": "CMD: netstat -an | findstr LISTENING",
+        "actions": ["Puerto confirmado", "Bloqueado"]
+      },
+      {
+        "title": "Cambiar servidor",
+        "desc": "Si es juego/chat, intenta otro servidor/puerto.",
+        "actions": ["Funciona", "Sigue bloqueado"]
+      },
+      {
+        "title": "Verificar app",
+        "desc": "Si app es legítima, agrégala a excepciones.",
+        "actions": ["Resuelto", "Sospechosa"]
+      }
+    ],
+    "solution": "Agrega excepciones permanentes en Firewall o reinstala."
+  }
+]

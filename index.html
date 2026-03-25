@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>TechDiag v2.5 - Loading...</title>
+</head>
+<body>
+  <iframe id="main-app" src="tech-support-diagnostics.html" style="width:100%;height:100vh;border:none;"></iframe>
+  
+  <script>
+    // Inyectar features.js cuando el iframe cargue
+    document.getElementById('main-app').onload = function() {
+      const iframeDoc = this.contentDocument || this.contentWindow.document;
+      
+      // Crear y agregar script de features
+      const script = iframeDoc.createElement('script');
+      script.src = '../features.js';
+      iframeDoc.body.appendChild(script);
+      
+      console.log('✅ Features.js inyectado al iframe');
+    };
+  </script>
+</body>
+</html>
